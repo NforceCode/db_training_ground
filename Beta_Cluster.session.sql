@@ -27,18 +27,19 @@ SELECT * FROM users ORDER BY id ASC;
 CREATE TABLE content (
   id serial PRIMARY KEY,
   name varchar(128) NOT NULL CHECK (name != ''),
-  owner_id int REFERENCES users (id), 
+  owner_id int, 
   created_at timestamp DEFAULT current_timestamp,
   "desc" varchar(1024) NOT NULL CHECK ("desc" != '')
+  CONSTRAINT "FK_owner_id" FOREIGN KEY (owner_id) REFERENCES users (id)
 );
 
 INSERT INTO content (name, owner_id, "desc") VALUES('Hello World', 1, 'My first content Pog');
 
 CREATE TABLE user_reaction (
-  user_id int NOT NULL REFERENCES users (id),
-  content_id int NOT NULL REFERENCES content (id),
+  user_id int NOT NULL CONSTRAINT "FK_user_id" FOREIGN KEY (user_id) REFERENCES users (id),
+  content_id int NOT NULL CONSTRAINT "FK_content_id" FOREIGN KEY (content_id) REFERENCES content (id),
   isLiked boolean
-  --FOREIGN KEY (user_id, content_id) REFERENCES  ()
+  
 );
 
 INSERT INTO user_reaction (user_id, content_id, isLiked) VALUES (2,1, false),
