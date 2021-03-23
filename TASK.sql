@@ -69,6 +69,10 @@ SELECT * FROM "workers" WHERE "id" =3;
 -- Выбрать работников с зарплатой более 400$.
 SELECT * FROM "workers" WHERE "salary" > 400;
 
+--Выбрать работников с зарплатой НЕ равной 500$.
+
+SELECT * FROm "workers" WHERE "salary" != 500;
+
 -- Узнайте зарплату и возраст Жени.
 
 SELECT ("salary", "birthday") FROM "workers" WHERE "name" = 'Zhenya';
@@ -93,9 +97,11 @@ SELECT * FROM "workers" WHERE (extract(year from age("birthday")) BETWEEN 26 AND
 
 -- Выбрать всех работников в возрасте от 23 лет до 27 лет или с зарплатой от 400$ до 1000$.
 SELECT * FROM "workers" 
-WHERE (extract(year from age("birthday")) BETWEEN 23 AND 27 )
-OR ("salary" BETWEEN 400 AND 1000) ;
+--Выбрать всех работников в возрасте 27 лет или с зарплатой не равной 400$.
 
+SELECT * FROM "workers" 
+WHERE extract(year from age("birthday")) = 27 
+OR "salary" != 400;
 
 -- Задачи на DELETE
 
