@@ -1,6 +1,6 @@
-DROP TABLE "position_to_worker";
-DROP TABLE "workers";
-DROP TABLE "position";
+DROP TABLE IF EXISTS "position_to_worker";
+DROP TABLE IF EXISTS "workers";
+DROP TABLE IF EXISTS "position";
 
 -- Создайте таблицу “workers” (“id”, “birthday”, “name”, “salary”).
 
@@ -148,9 +148,9 @@ VALUES
 -- Еще немного не понимаю как правильно связующие таблицы именовать
 CREATE TABLE "position_to_worker"(
 -- не уверен что тут лучше сделать ключом а что просто уникальным значением
-  "worker_id" int PRIMARY KEY REFERENCES "workers" ("id"),
+  "worker_id" int UNIQUE REFERENCES "workers" ("id"),
   "position_id" int  REFERENCES "position" ("id"),
-  CONSTRAINT "UQ_WORKER_POSITION" UNIQUE ("worker_id", "position_id")
+  PRIMARY KEY ("worker_id", "position_id")
 );
 
 INSERT INTO "position_to_worker" ("worker_id", "position_id") 
