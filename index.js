@@ -1,33 +1,16 @@
-const {Client} =require('pg');
+const {User, client} =require('./models');
+const {loadUsers} =require('./api');
 
-const test_ground_config = {
-  user: 'postgres',
-  password: 'postgres',
-  host: 'localhost',
-  port: 5432,
-  database: 'test_ground'
+start();
+
+async function start() {
+  await client.connect();
+
+  const users = await loadUsers();
+
+  await User.createTableIfNotExists();
+  const result = await User.bulkCreate(users);
+  console.log(result);
+
+  await client.end();
 }
-
-const test_ground = new Client(test_ground_config);
-
-
-async function assumingDirectControl (query) {
-
-  await test_ground.connect();
-
-  await test_ground.query(`
-    ${query}
-  `);
-
-  
-
-  await test_ground.end();
-}
-
-// assumingDirectControl(`CREATE TABLE "Shepard"(
-//   direct_control_assumed serial PRIMARY KEY
-// );`);
-
-assumingDirectControl(`
-ALTER TABLE "Shepard" ADD COLUMN "indoctrination status" ;`
-);
