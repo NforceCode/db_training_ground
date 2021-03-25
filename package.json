@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "private" : true, 
+  "private": true,
   "scripts": {
     "start": "node ./index.js"
   },
@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.21.1",
+    "lodash": "^4.17.21",
     "pg": "^8.5.1"
   }
 }

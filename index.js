@@ -1,16 +1,53 @@
-const {User, client} =require('./models');
+const path = require('path');
+const fs = require('fs').promises;
+const _ = require('lodash');
+const {User, client, Phone} =require('./models');
 const {loadUsers} =require('./api');
+const {generatePhones} = require('./utils');
 
 start();
 
 async function start() {
   await client.connect();
 
-  const users = await loadUsers();
+  const resetDbQueryString = await fs.readFile(
+    path.join(__dirname, '/sql/reset-db-query.sql'),
+    'utf8'
+  );
+  await client.query(resetDbQueryString);
+  
+  const users = await User.bulkCreate(await loadUsers());
+  const phones = await Phone.bulkCreate(generatePhones());
 
-  await User.createTableIfNotExists();
-  const result = await User.bulkCreate(users);
-  console.log(result);
+
+  /* СОЗДАЕМ ЗАКАЗ */
+  const ordersValuesString = users
+    .map(u => new Array(_.random(1, 5, false)).fill(null).map(() => `(${u.user})`).join(','))
+    .join(',');
+
+  const { rows: order } = await client.query(`
+    INSERT INTO "order" ("user")
+    VALUES ${ordersValuesString}
+    RETURNING "order";
+  `);
+
+  /* НАПОЛНЯЕМ ЗАКАЗ ТЕЛЕФОНАМИ */
+  const phonesToOrdersValuesString = order
+    .map(o => {
+      const arr = new Array(_.random(1, phones.length)).fill(null).map(
+        () => phones[_.random(1, phones.length - 1)]
+      );
+
+      return [...new Set(arr)]
+        .map(p => `(${o.order}, ${p.phone}, ${_.random(1, 4)})`)
+        .join(',');
+    })
+    .join(',');
+
+  await client.query(`
+  INSERT INTO phone_to_order ("order", "phone", "quantity")
+  VALUES ${phonesToOrdersValuesString};
+`);
 
   await client.end();
 }
