@@ -138,7 +138,8 @@ SELECT o.order, sum(pto.quantity * p.price)
 FROM "order" AS o 
   JOIN phone_to_order AS pto USING("order")
   JOIN "phone" AS p USING(phone)
-GROUP BY o.order;
+GROUP BY o.order
+ORDER BY o.order;
 -- order и user зарезервированные так что в двойных
 
 /* все телефоны конкретного заказа*/
@@ -147,12 +148,13 @@ FROM "order" AS o
   JOIN phone_to_order AS pto ON pto.order = o.order
   JOIN phone AS p ON p.phone= pto.phone
 WHERE o.order = 1
-GROUP BY p.model, p.brand, pto.quantity;
+GROUP BY p.model, p.brand, pto.quantity
+ORDER BY p.brand, p.model;
 
 
 /* Заказы каждого пользователя и его мейл*/
 
-SELECT count(o.order), o.user, u.email
+SELECT count(o.order) AS "Orders", o.user, u.email
 FROM "order" AS o
   JOIN "user" AS u ON u.user = o.user
 GROUP BY o.user, u.email
@@ -174,3 +176,135 @@ FROM "phone" AS p
 GROUP BY p.model, p.brand
 ORDER BY p.model, p.brand DESC
 LIMIT 1;
+
+/* Пользователи и кол-во моделей которые они покупали*/
+
+/*SELECT pto.order, u.email,count(pto.phone) AS "models"
+FROM "user" AS u
+  JOIN "order" AS o USING ("user")
+  JOIN phone_to_order AS pto USING("order")
+  JOIN phone AS p USING(phone)
+GROUP BY u.email, pto.order
+ORDER BY "models" DESC;*/
+
+/*===============================*/
+
+SELECT user_with_phone.user, count(user_with_phone.phone) 
+FROM(
+    SELECT u.user, p.phone
+    FROM "user" AS u
+    JOIN "order" AS o USING ("user")
+    JOIN phone_to_order AS pto USING("order")
+    JOIN phone AS p USING(phone)
+    GROUP BY u.user, p.phone
+  ) AS user_with_phone
+GROUP BY user_with_phone.user
+
+/* все заказы стоимостью выше среднего чека заказов */ 
+
+SELECT pto.order,
+  sum(pto.quantity * p.price) AS "cost"
+FROM phone_to_order AS pto
+  JOIN phone AS p USING(phone)
+GROUP BY pto.order
+
+-- ========================================
+SELECT avg(order_w_cost.cost) as avg_cost
+FROM (
+  SELECT pto.order,
+    sum(pto.quantity * p.price) AS "cost"
+  FROM phone_to_order AS pto
+    JOIN phone AS p USING(phone)
+  GROUP BY pto.order
+) AS order_w_cost
+
+/* ========================================*/
+
+SELECT order_w_cost.*
+FROM (
+  SELECT pto.order,
+    sum(pto.quantity * p.price) AS "cost"
+  FROM phone_to_order AS pto
+    JOIN phone AS p USING(phone)
+  GROUP BY pto.order
+) AS order_w_cost
+WHERE order_w_cost.cost > (SELECT avg(order_w_cost.cost) as avg_cost
+FROM (
+  SELECT pto.order,
+    sum(pto.quantity * p.price) AS "cost"
+  FROM phone_to_order AS pto
+    JOIN phone AS p USING(phone)
+  GROUP BY pto.order
+) AS order_w_cost)
+
+
+/* ========================================== */
+
+WITH order_w_cost AS (
+  SELECT pto.order,
+    sum(pto.quantity * p.price) AS "cost"
+  FROM phone_to_order AS pto
+    JOIN phone AS p USING(phone)
+  GROUP BY pto.order
+)
+SELECT order_w_cost.* 
+FROM order_w_cost
+WHERE order_w_cost.cost > (
+  SELECT avg(owc.cost)
+  FROM order_w_cost AS owc
+)
+ORDER BY order_w_cost.cost;
+
+/* Извлечь всех пользователей у которых кол-во заказов больше среднего */
+
+WITH order_with_user AS (
+  SELECT count(o.order) as orders_of_user, o.user 
+  FROM "order" AS o
+  GROUP BY o.user
+)
+
+
+SELECT * 
+FROM (
+  SELECT avg(ord.ord_num)
+  FROM (
+
+  ) AS ord
+) AS with_avg
+  JOIN "user" AS u USING ()
+
+WITH user_w_orders AS (
+  SELECT count(o.order) as ord_num, o.user 
+  FROM "order" AS o
+  GROUP BY o.user
+)
+SELECT uwo.user
+FROM user_w_orders AS uwo
+WHERE uwo.ord_num > (
+  SELECT avg(owc.ord_num)
+  FROM user_w_orders AS owc
+)
+
+/* извлечь всех пользователей с мин заказами */
+
+WITH user_w_orders AS (
+  SELECT count(o.order) as ord_num, o.user 
+  FROM "order" AS o
+  GROUP BY o.user
+)
+SELECT uwo.user
+FROM user_w_orders AS uwo
+WHERE uwo.ord_num = (
+  SELECT min(owc.ord_num)
+  FROM user_w_orders AS owc
+)
+
+    
+/* ВСЕ заказы с определенным телефоном.
+  Показать бренд и модель телефона*/
+
+SELECT pto.order, p.brand, p.model, pto.quantity AS "amount ordered", count(pto.order)
+FROM phone AS p
+  JOIN phone_to_order AS pto USING(phone)
+WHERE p.phone = 7
+GROUP BY pto.order, p.brand, p.model, "amount ordered"
