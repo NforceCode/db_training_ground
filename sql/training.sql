@@ -1,7 +1,7 @@
 
-DROP TABLE users;
+DROP TABLE user;
 
-CREATE TABLE users (
+CREATE TABLE user (
   "id" serial PRIMARY KEY,
   "first_name" varchar(64) NOT NULL ,
   "last_name" varchar(64) NOT NULL ,
@@ -14,56 +14,163 @@ CREATE TABLE users (
   CONSTRAINT "CK_FULL_NAME" CHECK ("first_name" !='' AND "last_name" !='')
 );
 
-INSERT INTO users ("first_name", "last_name", "email", "isMale", "birthday", "height", "weight") VALUES 
+INSERT INTO user ("first_name", "last_name", "email", "isMale", "birthday", "height", "weight") VALUES 
 ('Test', 'Testovich', 'test@test.test', true, '1991-12-21', 1.95, 100),
 ('Archaon', 'the Everchosen', 'burntheoldworld@chaos.net', true, '1964-6-6', 2.15, 10.45),
 ('Tester', 'the Evertesting', 'tester@test.test', true, '1974-6-6', 2.15, 100),
 ('Idk', 'Nonamovna', 'idk@imaginative.com', false, '1900-3-24', 1.7, 100.5),
 ('sadsd', 'asdasdsa', 'Error@eror', true, '1901-12-12', 1.75, 499.9);
 /*
-SELECT * FROM users ORDER BY id ASC;
+SELECT * FROM user ORDER BY id ASC;
 */
 
 CREATE TABLE content (
-  "id" serial PRIMARY KEY,
+  "content" serial PRIMARY KEY,
   "name" varchar(128) NOT NULL CHECK ("name" != ''),
-  "owner_id" int, 
+  "user" int, 
   "created_at" timestamp DEFAULT current_timestamp,
   "desc" varchar(1024) NOT NULL CHECK ("desc" != '')
-  CONSTRAINT "FK_owner_id" FOREIGN KEY ("owner_id") REFERENCES users (id)
+  CONSTRAINT "FK_owner_id" FOREIGN KEY ("user") REFERENCES user
 );
 
 INSERT INTO content ("name", "owner_id", "desc") VALUES('Hello World', 1, 'My first content Pog');
 
 CREATE TABLE user_reaction (
-  "user_id" int NOT NULL CONSTRAINT "FK_user_id" FOREIGN KEY ("user_id") REFERENCES users (id),
-  "content_id" int NOT NULL CONSTRAINT "FK_content_id" FOREIGN KEY ("content_id") REFERENCES content (id),
+  "user" int NOT NULL REFERENCES user,
+  "content" int NOT NULL REFERENCES content,
   "isLiked" boolean
   
 );
 
-INSERT INTO user_reaction ("user_id", "content_id", "isLiked") VALUES (2,1, false),
+INSERT INTO user_reaction ("user", "content", "isLiked") VALUES (2,1, false),
 (1,1, true);
 
-SELECT avg("height") AS "average height" FROM "users";
-SELECT avg("height") AS "average height", "is_male" FROM "users" GROUP BY "is_male";
-SELECT min("height") AS "min height", "is_male" FROM "users" GROUP BY "is_male";
+SELECT avg("height") AS "average height" FROM "user";
+SELECT avg("height") AS "average height", "is_male" FROM "user" GROUP BY "is_male";
+SELECT min("height") AS "min height", "is_male" FROM "user" GROUP BY "is_male";
 
 SELECT 
 min("height") AS "min height", 
 avg("height") AS "avg height", 
 max("height") AS "max height", 
 "is_male" 
-FROM "users" GROUP BY "is_male";
+FROM "user" GROUP BY "is_male";
 
 SELECT count(*) 
-FROM "users"
+FROM "user"
 WHERE "birthday" = '1970-1-1';
 
 SELECT count(*)
-FROM "users"
-WHERE "first_name" = 'Alexis';
+FROM "user"
+WHERE "firstName" = 'Alexis';
 
 SELECT count(*)
-FROM "users"
+FROM "user"
 WHERE extract(year from age("birthday")) BETWEEN 20 AND 30;
+
+
+SELECT sum("quantity") FROM "phone_to_order";
+
+SELECT SUM("quantity") FROM "phone";
+
+SELECT avg("price") FROM "phone";
+
+SELECT avg("price"), "brand" FROM "phone" GROUP BY "brand";
+
+SELECT sum("price" * "quantity") FROM "phone" WHERE "price" BETWEEN 10000 AND 20000;
+
+SELECT count("model"), "brand" FROM "phone" GROUP BY "brand";
+
+SELECT count("order"), "user" FROM "order" GROUP BY "user";
+
+SELECT avg("price") FROM "phone" WHERE "brand"='IPhone';
+
+
+
+SELECT *, extract(year from age("birthday")) AS "age" 
+FROM "user" ORDER BY extract(year from age("birthday")), "firstName";
+
+SELECT count(*) as "people", "age"
+FROM (SELECT *, extract(year from age("birthday")) AS "age" 
+FROM "user" ) AS "Users with Age"
+GROUP BY "age"
+HAVING count(*) > 5
+ORDER BY "age";
+
+
+SELECT sum("quantity") as "count","brand"
+FROM "phone"
+GROUP BY "brand"
+HAVING sum("quantity") > 2500; 
+
+
+SELECT * FROM "user" WHERE "firstName" LIKE 'J%' AND "lastName" ILIKE 'd%';
+
+SELECT char_length(concat("firstName", ' ', "lastName")) AS "fullName",* 
+FROM "user"
+ORDER BY "fullName" DESC
+LIMIT 1;
+
+SELECT * FROM (SELECT *, concat("firstName", ' ', "lastName") as "fullName" FROM "user") AS "withFullName" 
+WHERE length(concat("firstName", ' ', "lastName")) >=18;
+
+SELECT length(email) AS "length"
+FROM "user"
+WHERE email ILIKE 'w%'
+GROUP BY "length"
+HAVING length(email) > 25;
+
+SELECT length(email) AS "length", count(length(email)) AS "amount"
+FROM "user"
+WHERE email ILIKE 'w%'
+GROUP BY "length"
+HAVING count(length(email)) > 2;
+
+SELECT  char_length(concat("firstName", ' ', "lastName")) as "fullNameLength",
+count(user) FROM "user"
+GROUP BY "fullNameLength"
+HAVING char_length(concat("firstName", ' ', "lastName")) >= 18;
+
+
+
+/* стоимость каждого заказа */
+SELECT o.order, sum(pto.quantity * p.price)
+FROM "order" AS o 
+  JOIN phone_to_order AS pto USING("order")
+  JOIN "phone" AS p USING(phone)
+GROUP BY o.order;
+-- order и user зарезервированные так что в двойных
+
+/* все телефоны конкретного заказа*/
+SELECT p.model, p.brand, pto.quantity
+FROM "order" AS o 
+  JOIN phone_to_order AS pto ON pto.order = o.order
+  JOIN phone AS p ON p.phone= pto.phone
+WHERE o.order = 1
+GROUP BY p.model, p.brand, pto.quantity;
+
+
+/* Заказы каждого пользователя и его мейл*/
+
+SELECT count(o.order), o.user, u.email
+FROM "order" AS o
+  JOIN "user" AS u ON u.user = o.user
+GROUP BY o.user, u.email
+ORDER BY o.user;
+
+/* кол-во позиций товара в определенном заказе */
+
+SELECT count(*)
+FROM "order" AS o
+  JOIN phone_to_order AS pto ON pto.order = o.order
+WHERE o.order = 1;
+
+/* извлечь самый популярный телефон*/
+
+SELECT p.model, p.brand, count(pto.quantity) as "amount"
+FROM "phone" AS p
+  JOIN phone_to_order AS pto ON pto.phone = p.phone
+  JOIN "order" AS o ON pto.order = o.order
+GROUP BY p.model, p.brand
+ORDER BY p.model, p.brand DESC
+LIMIT 1;
