@@ -6,8 +6,8 @@ class Tasks {
 
     const tasksString = values
     .map(
-      ({name, user,  priority, description}) => {
-        return `('${name}','${user}','${priority}','${description}')`
+      ({name, user,  priority, description, is_done}) => {
+        return `('${name}','${user}','${priority}','${description}', '${is_done}')`
       }
     )
     .join(',');
@@ -17,7 +17,8 @@ class Tasks {
         "name",
         "user",
         "priority",
-        "description"        
+        "description",
+        "is_done"    
       ) VALUES ${tasksString}
     `)
     return rows;

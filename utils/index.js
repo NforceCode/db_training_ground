@@ -1,3 +1,4 @@
+const { random } = require('lodash');
 const _ = require('lodash');
 
 module.exports.mapUsers = users => {
@@ -59,7 +60,8 @@ module.exports.generatePhones = (length = 50) =>
 const createTask = () => ({
   name: TASK_NAMES[_.random(0, TASK_NAMES.length - 1, false)],
   priority: TASK_PRIORITY[_.random(0, TASK_PRIORITY.length - 1, false)],
-  description : `Pseudorandom descrption №${_.random(1,1000,false)}`
+  description : `Pseudorandom descrption №${_.random(1,1000,false)}`,
+  is_done: 0.5 > random()
 })
 
 module.exports.createTasks = (length = 10) => 
