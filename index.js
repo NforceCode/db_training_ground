@@ -1,9 +1,9 @@
 const path = require('path');
 const fs = require('fs').promises;
 const _ = require('lodash');
-const {User, client, Phone} =require('./models');
+const {User, client, Phone, Tasks} =require('./models');
 const {loadUsers} =require('./api');
-const {generatePhones} = require('./utils');
+const {generatePhones, createTasks} = require('./utils');
 
 start();
 
@@ -17,8 +17,12 @@ async function start() {
   await client.query(resetDbQueryString);
   
   const users = await User.bulkCreate(await loadUsers());
-  const phones = await Phone.bulkCreate(generatePhones());
-
+  const phones = await Phone.bulkCreate(generatePhones()); 
+  // добавлять существующих юзерей в объект больновато
+  await Tasks.bulkCreate(createTasks(1500)
+  .map(task =>  {
+    return {...task, user : _.random(1, users.length -1, false)}
+  }));
 
   /* СОЗДАЕМ ЗАКАЗ */
   const ordersValuesString = users

@@ -1,5 +1,4 @@
 const _ = require('lodash');
-const {get: users:results} 
 
 module.exports.mapUsers = users => {
   return users.map(
@@ -27,8 +26,24 @@ const TASK_NAMES = [
   'Do stuff successfully',
   'Relax',
   'Relax at home',
-  'Relax outside'
-]
+  'Relax outside',
+  'Exist',
+  'Drink',
+  'Eat',
+  'Drink healthy',
+  'Eat healthy',
+  'Sleep'
+];
+
+const TASK_PRIORITY = [
+  'DO IT NOW',
+  'extreme',
+  'high',
+  'medium',
+  'low',
+  'trivial',
+  'maybe in this century'
+];
 
 const generatePhone = key => ({
   brand: PHONES_BRANDS[_.random(0, PHONES_BRANDS.length - 1, false)],
@@ -42,8 +57,10 @@ module.exports.generatePhones = (length = 50) =>
 
 
 const createTask = () => ({
-  name: TASK_NAMES[_.random(0, TASK_NAMES.length - 1), false],
-  user: _.random(0, )
+  name: TASK_NAMES[_.random(0, TASK_NAMES.length - 1, false)],
+  priority: TASK_PRIORITY[_.random(0, TASK_PRIORITY.length - 1, false)],
+  description : `Pseudorandom descrption №${_.random(1,1000,false)}`
 })
 
-module.exports.createTasks = async ()
+module.exports.createTasks = (length = 10) => 
+  new Array(length).fill(null).map(() => createTask())

@@ -1,13 +1,13 @@
 class Tasks {
   static _client;
-  static _tableName = 'Tasks';
+  static _tableName = 'tasks';
 
-  static async bulkCreate (tasks) {
+  static async bulkCreate (values) {
 
     const tasksString = values
     .map(
-      (name, user,  priority, description) => {
-        `(${name}),(${user}),(${priority}), (${description})`
+      ({name, user,  priority, description}) => {
+        return `('${name}','${user}','${priority}','${description}')`
       }
     )
     .join(',');
@@ -17,7 +17,7 @@ class Tasks {
         "name",
         "user",
         "priority",
-        "description"
+        "description"        
       ) VALUES ${tasksString}
     `)
     return rows;

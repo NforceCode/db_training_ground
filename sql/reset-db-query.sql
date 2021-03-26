@@ -1,8 +1,8 @@
 DROP TABLE IF EXISTS phone_to_order;
 DROP TABLE IF EXISTS "order";
 DROP TABLE IF EXISTS "phone";
-DROP TABLE IF EXISTS "user";
 DROP TABLE IF EXISTS tasks;
+DROP TABLE IF EXISTS "user";
 /*  */
 CREATE TABLE "user" (
   "user" serial PRIMARY KEY,
@@ -51,9 +51,9 @@ CREATE TABLE phone_to_order (
 
 CREATE TABLE tasks (
   task serial PRIMARY KEY,
-  name varchar(128) NOT NULL CHECK (name != ''),
+  "name" varchar(1024) NOT NULL CHECK ("name" != ''),
   "user" int REFERENCES "user",
   is_done boolean DEFAULT false,
-  priority varchar(24) NOT NULL CHECK (priority != ''),
+  "priority" varchar(1024) NOT NULL CHECK ("priority" != ''),
   description text
 );
